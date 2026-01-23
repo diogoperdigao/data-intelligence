@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertical Business Intelligence Dashboard - NACE 71</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+        
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .kpi-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .kpi-label {
+            font-size: 0.9em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        
+        .kpi-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .kpi-subvalue {
+            font-size: 1.2em;
+            color: #999;
+            margin-top: -5px;
+            margin-bottom: 8px;
+        }
+        
+        .kpi-change {
+            font-size: 0.95em;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        
+        .positive {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .neutral {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .chart-container h3 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .insights {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .insights h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .insight-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #38ef7d;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .insight-item strong {
+            color: #11998e;
+        }
+        
+        canvas {
+            max-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>📊 Vertical Business Intelligence Dashboard</h1>
+            <p><strong>NACE 71: Architectural & Engineering Activities</strong> | Denmark | 2022-2024 Analysis</p>
+            <p style="margin-top: 10px; color: #888;"><em>Market analysis powered by Virkmart (CVR) company database</em></p>
+        </div>
+        
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Total Market Size</div>
+                <div class="kpi-value">15,161</div>
+                <div class="kpi-change positive">+2.1% YoY (2022-2024)</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Visma Customers</div>
+                <div class="kpi-value">847</div>
+                <div class="kpi-subvalue">5.59% Market Share</div>
+                <div class="kpi-change positive">+64 customers vs 2022</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">New Companies (2024)</div>
+                <div class="kpi-value">1,396</div>
+                <div class="kpi-change positive">9.21% formation rate</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Net Growth (2024)</div>
+                <div class="kpi-value">+176</div>
+                <div class="kpi-change positive">New - Closed</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Avg Profit per Company</div>
+                <div class="kpi-value">€0.79M</div>
+                <div class="kpi-change positive">+23% vs 2022</div>
+            </div>
+        </div>
+        
+        <div class="chart-grid">
+            <div class="chart-container">
+                <h3>📊 Company Count Trend</h3>
+                <canvas id="companyTrendChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>🔄 Formations vs Closures</h3>
+                <canvas id="churnChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-grid">
+            <div class="chart-container">
+                <h3>💵 Average Assets per Company</h3>
+                <canvas id="assetsChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>💰 Average Profit per Company</h3>
+                <canvas id="profitChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-grid">
+            <div class="chart-container full-width">
+                <h3>📈 Market Health Indicators</h3>
+                <canvas id="healthChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="insights">
+            <h3>💡 Key Insights</h3>
+            
+            <div class="insight-item">
+                <strong>✅ Market is Growing:</strong> +309 companies from 2022 to 2024 (+2.1% compound growth). 
+                Consistent new formations (1,300-1,400/year) with declining closures indicate healthy market dynamics.
+            </div>
+            
+            <div class="insight-item">
+                <strong>✅ High Entrepreneurial Activity:</strong> 9% formation rate is significantly above typical market rates. 
+                Strong signal of market opportunity and low barriers to entry.
+            </div>
+            
+            <div class="insight-item">
+                <strong>✅ Improving Survival Rates:</strong> Closure rate decreased from 8.8% (2022) to 8.1% (2024). 
+                Net growth turned positive (+218 in 2023, +176 in 2024 vs only +7 in 2022).
+            </div>
+            
+            <div class="insight-item">
+                <strong>✅ Stable Profitability:</strong> Average profit per company stable at €0.64-0.79M, with slight improvement in 2024. 
+                Indicates sustainable business models in the sector.
+            </div>
+            
+            <div class="insight-item">
+                <strong>📊 Market Share Opportunity:</strong> With 847 customers out of 15,161 companies (5.59% market share), 
+                significant growth potential remains. Added 64 net new customers since 2022.
+            </div>
+            
+            <div class="insight-item">
+                <strong>🎯 Investment Recommendation:</strong> 15,000+ companies in architectural/engineering services represent 
+                a growing, profitable market. Priority areas: accounting software, project management tools, time tracking & billing solutions.
+            </div>
+            
+            <div class="insight-item">
+                <strong>💡 Strategic Approach:</strong> Given data limitations (43% financial coverage, 26% employee data), 
+                recommend asset-based segmentation combined with geographic and age-based targeting.
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Data from BigQuery analysis
+        const years = ['2022', '2023', '2024'];
+        const companyData = {
+            total: [14852, 14947, 15161],
+            new: [1312, 1400, 1396],
+            closed: [1305, 1182, 1220],
+            netChange: [7, 218, 176],
+            vismaCustomers: [783, 812, 847]
+        };
+        
+        const financialData = {
+            avgAssets: [22.55, 13.01, 13.32],
+            avgEquity: [6.88, 3.96, 3.92],
+            avgProfit: [0.64, 0.64, 0.79],
+            totalAssets: [147656, 84188, 87582],
+            totalProfit: [10221, 9093, 11015]
+        };
+        
+        const coverageData = {
+            financial: [42.14, 42.70, 43.06],
+            employee: [28.66, 27.06, 25.53]
+        };
+        
+        // Chart 1: Company Trend
+        const ctx1 = document.getElementById('companyTrendChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [
+                    {
+                        label: 'Total Companies',
+                        data: companyData.total,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    },
+                    {
+                        label: 'Visma Customers',
+                        data: companyData.vismaCustomers,
+                        borderColor: '#38ef7d',
+                        backgroundColor: 'rgba(56, 239, 125, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.parsed.y.toLocaleString();
+                                if (context.dataset.label === 'Visma Customers') {
+                                    const total = companyData.total[context.dataIndex];
+                                    const share = (context.parsed.y / total * 100).toFixed(2);
+                                    label += ' (' + share + '% market share)';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Chart 2: Formations vs Closures
+        const ctx2 = document.getElementById('churnChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: years,
+                datasets: [
+                    {
+                        label: 'New Companies',
+                        data: companyData.new,
+                        backgroundColor: 'rgba(56, 239, 125, 0.8)',
+                        borderColor: '#38ef7d',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Closed Companies',
+                        data: companyData.closed,
+                        backgroundColor: 'rgba(244, 67, 54, 0.8)',
+                        borderColor: '#f44336',
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Net Change',
+                        data: companyData.netChange,
+                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                        borderColor: '#667eea',
+                        borderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Chart 3: Assets
+        const ctx3 = document.getElementById('assetsChart').getContext('2d');
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: years,
+                datasets: [{
+                    label: 'Average Assets (€M)',
+                    data: financialData.avgAssets,
+                    backgroundColor: ['rgba(102, 126, 234, 0.8)', 'rgba(118, 75, 162, 0.8)', 'rgba(56, 239, 125, 0.8)'],
+                    borderColor: ['#667eea', '#764ba2', '#38ef7d'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '€' + context.parsed.y.toFixed(2) + 'M per company';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '€' + value + 'M';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Chart 4: Profit
+        const ctx4 = document.getElementById('profitChart').getContext('2d');
+        new Chart(ctx4, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [{
+                    label: 'Average Profit (€M)',
+                    data: financialData.avgProfit,
+                    borderColor: '#11998e',
+                    backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '€' + context.parsed.y.toFixed(2) + 'M per company';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '€' + value.toFixed(2) + 'M';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Chart 5: Market Health
+        const ctx5 = document.getElementById('healthChart').getContext('2d');
+        new Chart(ctx5, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [
+                    {
+                        label: 'Formation Rate (%)',
+                        data: [8.83, 9.37, 9.21],
+                        borderColor: '#38ef7d',
+                        backgroundColor: 'rgba(56, 239, 125, 0.1)',
+                        borderWidth: 3,
+                        yAxisID: 'y',
+                        tension: 0.4,
+                        pointRadius: 6
+                    },
+                    {
+                        label: 'Closure Rate (%)',
+                        data: [8.79, 7.91, 8.05],
+                        borderColor: '#f44336',
+                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                        borderWidth: 3,
+                        yAxisID: 'y',
+                        tension: 0.4,
+                        pointRadius: 6
+                    },
+                    {
+                        label: 'Market Share - Visma (%)',
+                        data: [5.27, 5.43, 5.59],
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        borderDash: [5, 5],
+                        yAxisID: 'y',
+                        tension: 0.4,
+                        pointRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Percentage (%)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value.toFixed(1) + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
