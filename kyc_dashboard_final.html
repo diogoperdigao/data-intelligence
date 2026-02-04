@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KYC - Customer Health Monitoring</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            background: #f8f9fa;
+            padding: 24px;
+        }
+        
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px 32px;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .dashboard-title {
+            font-size: 28px;
+            font-weight: 400;
+            margin-bottom: 4px;
+        }
+        
+        .dashboard-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .dashboard-content {
+            background: white;
+            padding: 32px;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        
+        .metric-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .metric-card.strong-growth::before { background: #10b981; }
+        .metric-card.moderate-growth::before { background: #3b82f6; }
+        .metric-card.stable::before { background: #6b7280; }
+        .metric-card.declining::before { background: #ef4444; }
+        .metric-card.unknown::before { background: #f59e0b; }
+        
+        .metric-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .metric-icon {
+            font-size: 32px;
+        }
+        
+        .metric-label {
+            font-size: 11px;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-value {
+            font-size: 36px;
+            font-weight: 300;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+        
+        .metric-secondary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .metric-percentage {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .strong-growth .metric-percentage { background: #d1fae5; color: #065f46; }
+        .moderate-growth .metric-percentage { background: #dbeafe; color: #1e40af; }
+        .stable .metric-percentage { background: #f3f4f6; color: #374151; }
+        .declining .metric-percentage { background: #fee2e2; color: #991b1b; }
+        .unknown .metric-percentage { background: #fef3c7; color: #92400e; }
+        
+        .metric-secondary span:last-child {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        .metric-action {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 8px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .action-priority {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        
+        .priority-high { background: #fee2e2; color: #991b1b; }
+        .priority-medium { background: #fef3c7; color: #92400e; }
+        .priority-low { background: #f3f4f6; color: #374151; }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 500;
+            color: #111827;
+            margin: 32px 0 20px 0;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .section-icon {
+            font-size: 24px;
+            margin-right: 8px;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .chart-container {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 24px;
+        }
+        
+        .chart-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 20px;
+        }
+        
+        .chart {
+            height: 300px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 20px 0;
+        }
+        
+        .bar {
+            width: 17%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .bar-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .bar-fill {
+            width: 100%;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s ease;
+        }
+        
+        .bar-fill:hover {
+            opacity: 0.8;
+        }
+        
+        .bar-label {
+            font-size: 10px;
+            color: #6b7280;
+            text-align: center;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+        
+        .pie-chart {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+        }
+        
+        .pie-visual {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #10b981 0deg 72deg,
+                #3b82f6 72deg 144deg,
+                #6b7280 144deg 180deg,
+                #ef4444 180deg 288deg,
+                #f59e0b 288deg 360deg
+            );
+        }
+        
+        .pie-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+        
+        .legend-text {
+            font-size: 13px;
+            color: #374151;
+            font-weight: 500;
+            min-width: 120px;
+        }
+        
+        .legend-value {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        .table-container {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        thead {
+            background: #f9fafb;
+        }
+        
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        th.text-right {
+            text-align: right;
+        }
+        
+        td {
+            padding: 12px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+        
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .status-strong { background: #d1fae5; color: #065f46; }
+        .status-moderate { background: #dbeafe; color: #1e40af; }
+        .status-declining { background: #fee2e2; color: #991b1b; }
+        
+        .text-green { color: #059669; font-weight: 600; }
+        .text-red { color: #dc2626; font-weight: 600; }
+        .text-yellow { color: #d97706; font-weight: 600; }
+        .text-gray { color: #6b7280; }
+        
+        .font-mono {
+            font-family: 'Courier New', monospace;
+        }
+        
+        .table-footer {
+            background: #f9fafb;
+            padding: 12px 16px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .asset-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+        
+        .asset-value {
+            color: #111827;
+            font-weight: 500;
+        }
+        
+        .asset-change {
+            font-size: 11px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="dashboard-title">KYC - Customer Health Monitoring</div>
+            <div class="dashboard-subtitle">DineroDK • Last updated: January 21, 2026 • Classifiable customers: 11,850</div>
+        </div>
+
+        <div class="dashboard-content">
+            <!-- Metrics Grid -->
+            <div class="metrics-grid">
+                <div class="metric-card strong-growth">
+                    <div class="metric-header">
+                        <div class="metric-icon">🚀</div>
+                        <div class="metric-label">Strong Growth</div>
+                    </div>
+                    <div class="metric-value">3,950</div>
+                    <div class="metric-secondary">
+                        <span class="metric-percentage">33.3%</span>
+                        <span>of classifiable</span>
+                    </div>
+                    <div class="metric-action">
+                        <div class="action-priority priority-high">HIGH PRIORITY</div>
+                        <div>Upsell opportunity: €3-8M ARR</div>
+                    </div>
+                </div>
+
+                <div class="metric-card moderate-growth">
+                    <div class="metric-header">
+                        <div class="metric-icon">📈</div>
+                        <div class="metric-label">Moderate Growth</div>
+                    </div>
+                    <div class="metric-value">2,850</div>
+                    <div class="metric-secondary">
+                        <span class="metric-percentage">24.1%</span>
+                        <span>of classifiable</span>
+                    </div>
+                    <div class="metric-action">
+                        <div class="action-priority priority-medium">MEDIUM PRIORITY</div>
+                        <div>Expansion opportunities</div>
+                    </div>
+                </div>
+
+                <div class="metric-card stable">
+                    <div class="metric-header">
+                        <div class="metric-icon">➡️</div>
+                        <div class="metric-label">Stable</div>
+                    </div>
+                    <div class="metric-value">1,850</div>
+                    <div class="metric-secondary">
+                        <span class="metric-percentage">15.6%</span>
+                        <span>of classifiable</span>
+                    </div>
+                    <div class="metric-action">
+                        <div class="action-priority priority-low">STANDARD</div>
+                        <div>Maintain engagement</div>
+                    </div>
+                </div>
+
+                <div class="metric-card declining">
+                    <div class="metric-header">
+                        <div class="metric-icon">↘️</div>
+                        <div class="metric-label">Declining</div>
+                    </div>
+                    <div class="metric-value">2,400</div>
+                    <div class="metric-secondary">
+                        <span class="metric-percentage">20.3%</span>
+                        <span>of classifiable</span>
+                    </div>
+                    <div class="metric-action">
+                        <div class="action-priority priority-high">HIGH PRIORITY</div>
+                        <div>At-risk: €5-10M ARR</div>
+                    </div>
+                </div>
+
+                <div class="metric-card unknown">
+                    <div class="metric-header">
+                        <div class="metric-icon">❓</div>
+                        <div class="metric-label">Unknown</div>
+                    </div>
+                    <div class="metric-value">800</div>
+                    <div class="metric-secondary">
+                        <span class="metric-percentage">6.7%</span>
+                        <span>of classifiable</span>
+                    </div>
+                    <div class="metric-action">
+                        <div class="action-priority priority-low">LOW PRIORITY</div>
+                        <div>Insufficient data</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="section-title">Customer Distribution Analysis</div>
+            <div class="charts-grid">
+                <!-- Bar Chart -->
+                <div class="chart-container">
+                    <div class="chart-title">Growth Category Distribution</div>
+                    <div class="chart">
+                        <div class="bar">
+                            <div class="bar-value">3,950</div>
+                            <div class="bar-fill" style="height: 220px; background: linear-gradient(180deg, #10b981 0%, #059669 100%);"></div>
+                            <div class="bar-label">STRONG<br>GROWTH</div>
+                        </div>
+                        <div class="bar">
+                            <div class="bar-value">2,850</div>
+                            <div class="bar-fill" style="height: 160px; background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);"></div>
+                            <div class="bar-label">MODERATE<br>GROWTH</div>
+                        </div>
+                        <div class="bar">
+                            <div class="bar-value">1,850</div>
+                            <div class="bar-fill" style="height: 100px; background: linear-gradient(180deg, #6b7280 0%, #4b5563 100%);"></div>
+                            <div class="bar-label">STABLE</div>
+                        </div>
+                        <div class="bar">
+                            <div class="bar-value">2,400</div>
+                            <div class="bar-fill" style="height: 135px; background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);"></div>
+                            <div class="bar-label">DECLINING</div>
+                        </div>
+                        <div class="bar">
+                            <div class="bar-value">800</div>
+                            <div class="bar-fill" style="height: 45px; background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);"></div>
+                            <div class="bar-label">UNKNOWN</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pie Chart -->
+                <div class="chart-container">
+                    <div class="chart-title">Percentage Breakdown</div>
+                    <div class="pie-chart">
+                        <div class="pie-visual"></div>
+                        <div class="pie-legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #10b981;"></div>
+                                <div class="legend-text">Strong Growth</div>
+                                <div class="legend-value">33.3%</div>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #3b82f6;"></div>
+                                <div class="legend-text">Moderate Growth</div>
+                                <div class="legend-value">24.1%</div>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #6b7280;"></div>
+                                <div class="legend-text">Stable</div>
+                                <div class="legend-value">15.6%</div>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #ef4444;"></div>
+                                <div class="legend-text">Declining</div>
+                                <div class="legend-value">20.3%</div>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #f59e0b;"></div>
+                                <div class="legend-text">Unknown</div>
+                                <div class="legend-value">6.7%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top 50 Expansion Opportunities -->
+            <div class="section-title">
+                <span class="section-icon">🚀</span>Top 50 Expansion Opportunities
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>OrgNo</th>
+                            <th>Company Name</th>
+                            <th>Growth Status</th>
+                            <th class="text-right">3Y Employee Change</th>
+                            <th class="text-right">3Y Equity Ratio</th>
+                            <th class="text-right">3Y Asset Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="font-mono">42624535</td>
+                            <td style="font-weight: 500;">Nordic Tech Solutions ApS</td>
+                            <td><span class="status-badge status-strong">🚀 Strong Growth</span></td>
+                            <td class="text-right text-green">+156%</td>
+                            <td class="text-right text-green">82%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">24.5M DKK</span>
+                                    <span class="asset-change text-green">+260%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">38073095</td>
+                            <td style="font-weight: 500;">Copenhagen Digital Hub A/S</td>
+                            <td><span class="status-badge status-strong">🚀 Strong Growth</span></td>
+                            <td class="text-right text-green">+89%</td>
+                            <td class="text-right text-green">76%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">18.2M DKK</span>
+                                    <span class="asset-change text-green">+178%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">44558831</td>
+                            <td style="font-weight: 500;">Scandinavian Consulting Group</td>
+                            <td><span class="status-badge status-strong">🚀 Strong Growth</span></td>
+                            <td class="text-right text-green">+67%</td>
+                            <td class="text-right text-green">71%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">15.8M DKK</span>
+                                    <span class="asset-change text-green">+165%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">31245678</td>
+                            <td style="font-weight: 500;">Dansk Innovation Partners</td>
+                            <td><span class="status-badge status-moderate">📈 Moderate Growth</span></td>
+                            <td class="text-right text-green">+45%</td>
+                            <td class="text-right text-green">68%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">12.3M DKK</span>
+                                    <span class="asset-change text-green">+98%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">29384756</td>
+                            <td style="font-weight: 500;">Aarhus Software House ApS</td>
+                            <td><span class="status-badge status-strong">🚀 Strong Growth</span></td>
+                            <td class="text-right text-green">+134%</td>
+                            <td class="text-right text-green">79%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">22.1M DKK</span>
+                                    <span class="asset-change text-green">+235%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">41928374</td>
+                            <td style="font-weight: 500;">Øresund Business Solutions</td>
+                            <td><span class="status-badge status-moderate">📈 Moderate Growth</span></td>
+                            <td class="text-right text-green">+52%</td>
+                            <td class="text-right text-green">64%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">9.7M DKK</span>
+                                    <span class="asset-change text-green">+87%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">36547281</td>
+                            <td style="font-weight: 500;">Jutland Engineering A/S</td>
+                            <td><span class="status-badge status-strong">🚀 Strong Growth</span></td>
+                            <td class="text-right text-green">+98%</td>
+                            <td class="text-right text-green">73%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">16.9M DKK</span>
+                                    <span class="asset-change text-green">+142%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">44217893</td>
+                            <td style="font-weight: 500;">Bornholm Design Studio</td>
+                            <td><span class="status-badge status-moderate">📈 Moderate Growth</span></td>
+                            <td class="text-right text-green">+38%</td>
+                            <td class="text-right text-yellow">61%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">7.4M DKK</span>
+                                    <span class="asset-change text-green">+76%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">33891245</td>
+                            <td style="font-weight: 500;">Roskilde Tech Ventures ApS</td>
+                            <td><span class="status-badge status-strong">🚀 Strong Growth</span></td>
+                            <td class="text-right text-green">+112%</td>
+                            <td class="text-right text-green">85%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">28.3M DKK</span>
+                                    <span class="asset-change text-green">+298%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">40157263</td>
+                            <td style="font-weight: 500;">Odense Innovation Lab A/S</td>
+                            <td><span class="status-badge status-moderate">📈 Moderate Growth</span></td>
+                            <td class="text-right text-green">+41%</td>
+                            <td class="text-right text-yellow">59%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">8.1M DKK</span>
+                                    <span class="asset-change text-green">+69%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="table-footer">
+                    Showing 10 of 50 expansion opportunities • Sorted by growth score
+                </div>
+            </div>
+
+            <!-- Top 50 Churn Risk -->
+            <div class="section-title">
+                <span class="section-icon">🚨</span>Top 50 Churn Risk
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>OrgNo</th>
+                            <th>Company Name</th>
+                            <th>Growth Status</th>
+                            <th class="text-right">3Y Employee Change</th>
+                            <th class="text-right">3Y Equity Ratio</th>
+                            <th class="text-right">3Y Asset Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="font-mono">26476402</td>
+                            <td style="font-weight: 500;">Vintage Retail Solutions</td>
+                            <td><span class="status-badge status-declining">↘️ Declining</span></td>
+                            <td class="text-right text-red">-34%</td>
+                            <td class="text-right text-red">12%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">3.2M DKK</span>
+                                    <span class="asset-change text-red">-48%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">19283746</td>
+                            <td style="font-weight: 500;">Legacy Systems A/S</td>
+                            <td><span class="status-badge status-declining">↘️ Declining</span></td>
+                            <td class="text-right text-red">-45%</td>
+                            <td class="text-right text-red">-8%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">5.1M DKK</span>
+                                    <span class="asset-change text-red">-62%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">33547821</td>
+                            <td style="font-weight: 500;">Traditional Services ApS</td>
+                            <td><span class="status-badge status-declining">↘️ Declining</span></td>
+                            <td class="text-right text-red">-28%</td>
+                            <td class="text-right text-red">8%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">2.8M DKK</span>
+                                    <span class="asset-change text-red">-41%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">28193654</td>
+                            <td style="font-weight: 500;">Old Town Consulting</td>
+                            <td><span class="status-badge status-declining">↘️ Declining</span></td>
+                            <td class="text-right text-red">-52%</td>
+                            <td class="text-right text-red">3%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">1.9M DKK</span>
+                                    <span class="asset-change text-red">-71%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">35729184</td>
+                            <td style="font-weight: 500;">Classic Business Partners</td>
+                            <td><span class="status-badge status-declining">↘️ Declining</span></td>
+                            <td class="text-right text-red">-41%</td>
+                            <td class="text-right text-red">-15%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">4.3M DKK</span>
+                                    <span class="asset-change text-red">-58%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">24816573</td>
+                            <td style="font-weight: 500;">Sunset Industries A/S</td>
+                            <td><span class="status-badge status-declining">↘️ Declining</span></td>
+                            <td class="text-right text-red">-38%</td>
+                            <td class="text-right text-red">6%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">3.7M DKK</span>
+                                    <span class="asset-change text-red">-52%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">31458927</td>
+                            <td style="font-weight: 500;">Declining Ventures ApS</td>
+                            <td><span class="status-badge status-declining">↘️ Declining</span></td>
+                            <td class="text-right text-red">-29%</td>
+                            <td class="text-right text-red">11%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">2.5M DKK</span>
+                                    <span class="asset-change text-red">-38%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">27839461</td>
+                            <td style="font-weight: 500;">Struggling Solutions Group</td>
+                            <td><span class="status-badge status-declining">↘️ Declining</span></td>
+                            <td class="text-right text-red">-47%</td>
+                            <td class="text-right text-red">-5%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">3.9M DKK</span>
+                                    <span class="asset-change text-red">-65%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">36924718</td>
+                            <td style="font-weight: 500;">Fading Tech Services</td>
+                            <td><span class="status-badge status-declining">↘️ Declining</span></td>
+                            <td class="text-right text-red">-33%</td>
+                            <td class="text-right text-red">9%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">2.1M DKK</span>
+                                    <span class="asset-change text-red">-44%</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="font-mono">29517384</td>
+                            <td style="font-weight: 500;">Downturn Business A/S</td>
+                            <td><span class="status-badge status-declining">↘️ Declining</span></td>
+                            <td class="text-right text-red">-56%</td>
+                            <td class="text-right text-red">-22%</td>
+                            <td class="text-right">
+                                <div class="asset-cell">
+                                    <span class="asset-value">5.7M DKK</span>
+                                    <span class="asset-change text-red">-78%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="table-footer">
+                    Showing 10 of 50 high-risk customers • Sorted by churn risk score
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
